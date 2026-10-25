@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PA &amp; PG Lab — Gerador de Progressões Aritméticas e Geométricas</title>
+  <meta name="description" content="Gere e analise Progressões Aritméticas (PA) e Geométricas (PG) termo a termo: veja a sequência, o último termo, a soma, o gráfico e o passo a passo do algoritmo.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body data-tipo="PA" data-modo="gerar">
+  <div class="bg" aria-hidden="true">
+    <span class="blob b1"></span><span class="blob b2"></span><span class="blob b3"></span>
+    <div class="grid-overlay"></div>
+  </div>
+
+  <header class="topo">
+    <div class="marca">
+      <div class="logo" aria-hidden="true">
+        <span>a<sub>n</sub></span>
+      </div>
+      <div>
+        <h1>PA <span class="amp">&amp;</span> PG Lab</h1>
+        <p class="subtitulo">Padrões matemáticos transformados em algoritmos</p>
+      </div>
+    </div>
+    <div class="formula-topo" id="formula-topo" aria-live="polite">a<sub>n+1</sub> = a<sub>n</sub> + r</div>
+  </header>
+
+  <main class="layout">
+    <!-- ================= PAINEL DE CONTROLE ================= -->
+    <section class="card controles" aria-labelledby="titulo-controles">
+      <h2 id="titulo-controles" class="sr-only">Configurar progressão</h2>
+
+      <div class="abas" role="tablist" aria-label="Modo">
+        <button class="aba ativa" role="tab" id="aba-gerar" data-modo="gerar" aria-selected="true">Gerar sequência</button>
+        <button class="aba" role="tab" id="aba-meta" data-modo="meta" aria-selected="false">Alcançar meta</button>
+        <span class="aba-indicador" aria-hidden="true"></span>
+      </div>
+
+      <fieldset class="tipo">
+        <legend>Tipo de progressão</legend>
+        <div class="segmentado">
+          <input type="radio" name="tipo" id="tipo-pa" value="PA" checked>
+          <label for="tipo-pa">
+            <strong>PA</strong>
+            <small>Aritmética · soma a razão</small>
+          </label>
+          <input type="radio" name="tipo" id="tipo-pg" value="PG">
+          <label for="tipo-pg">
+            <strong>PG</strong>
+            <small>Geométrica · multiplica a razão</small>
+          </label>
+          <span class="seg-indicador" aria-hidden="true"></span>
+        </div>
+      </fieldset>
+
+      <form id="formulario" novalidate>
+        <div class="campo">
+          <label for="primeiro">Primeiro termo <span class="simbolo">a<sub>1</sub></span></label>
+          <input id="primeiro" name="primeiro" type="text" inputmode="decimal" autocomplete="off" value="5" required>
+        </div>
+        <div class="campo">
+          <label for="razao">Razão <span class="simbolo" id="simbolo-razao">r</span></label>
+          <input id="razao" name="razao" type="text" inputmode="decimal" autocomplete="off" value="3" required>
+        </div>
+        <div class="campo so-gerar">
+          <label for="quantidade">Quantidade de termos <span class="simbolo">n</span></label>
+          <input id="quantidade" name="quantidade" type="number" min="1" max="500" step="1" value="6" required>
+        </div>
+        <div class="campo so-meta">
+          <label for="meta">Meta <span class="simbolo">S &gt; M</span></label>
+          <input id="meta" name="meta" type="text" inputmode="decimal" autocomplete="off" value="1000">
+        </div>
+
+        <p class="erro" id="erro" role="alert"></p>
+
+        <button type="submit" class="btn-principal" id="btn-gerar">
+          <span id="btn-texto">Gerar PA</span>
+          <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
+      </form>
+
+      <div class="presets">
+        <p class="presets-titulo">Testes rápidos</p>
+        <div class="presets-lista" id="presets"></div>
+      </div>
+    </section>
+
+    <!-- ================= RESULTADOS ================= -->
+    <section class="resultados" aria-live="polite" aria-labelledby="titulo-resultados">
+      <h2 id="titulo-resultados" class="sr-only">Resultados</h2>
+
+      <div class="aviso" id="aviso" hidden></div>
+
+      <div class="stats">
+        <article class="card stat">
+          <p class="stat-rotulo" id="rotulo-stat1">Último termo</p>
+          <p class="stat-valor" id="stat-ultimo">—</p>
+          <p class="stat-extra" id="extra-ultimo">&nbsp;</p>
+        </article>
+        <article class="card stat destaque">
+          <p class="stat-rotulo">Soma dos termos</p>
+          <p class="stat-valor" id="stat-soma">—</p>
+          <p class="stat-extra" id="extra-soma">&nbsp;</p>
+        </article>
+        <article class="card stat">
+          <p class="stat-rotulo" id="rotulo-stat3">Quantidade de termos</p>
+          <p class="stat-valor" id="stat-qtd">—</p>
+          <p class="stat-extra" id="extra-qtd">&nbsp;</p>
+        </article>
+      </div>
+
+      <article class="card">
+        <div class="card-topo">
+          <h3 id="titulo-sequencia">PA gerada</h3>
+          <button class="btn-fantasma" id="btn-copiar" type="button">
+            <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><rect x="9" y="9" width="11" height="11" rx="2" fill="none" stroke="currentColor" stroke-width="2"/><path d="M5 15V6a2 2 0 0 1 2-2h9" fill="none" stroke="currentColor" stroke-width="2"/></svg>
+            <span>Copiar</span>
+          </button>
+        </div>
+        <ol class="sequencia" id="sequencia"></ol>
+      </article>
+
+      <article class="card">
+        <div class="card-topo">
+          <h3>Gráfico</h3>
+          <div class="legenda">
+            <span><i class="lg-barra"></i>Termos a<sub>n</sub></span>
+            <span><i class="lg-linha"></i>Soma acumulada S<sub>n</sub></span>
+            <span class="so-meta"><i class="lg-meta"></i>Meta</span>
+          </div>
+        </div>
+        <div class="grafico-wrap">
+          <canvas id="grafico" role="img" aria-label="Gráfico dos termos e da soma acumulada"></canvas>
+          <div class="tooltip" id="tooltip" hidden></div>
+        </div>
+      </article>
+
+      <div class="duas-colunas">
+        <article class="card">
+          <h3>Verificação matemática</h3>
+          <p class="texto-suave">O programa gera os termos com um laço. Aqui conferimos o resultado com as fórmulas.</p>
+          <div id="verificacao" class="verificacao"></div>
+        </article>
+
+        <article class="card">
+          <details class="passos" open>
+            <summary><h3>Passo a passo do laço</h3><span class="chevron" aria-hidden="true"></span></summary>
+            <div class="tabela-wrap">
+              <table>
+                <thead><tr><th>i</th><th>Termo</th><th>Operação</th><th>Soma acumulada</th></tr></thead>
+                <tbody id="tabela"></tbody>
+              </table>
+            </div>
+          </details>
+        </article>
+      </div>
+
+      <article class="card codigo-card">
+        <h3>Pseudocódigo executado</h3>
+        <pre id="pseudo"></pre>
+      </article>
+    </section>
+  </main>
+
+  <footer class="rodape">PA &amp; PG Lab · Pensamento Computacional · Os termos são construídos um a um com estrutura de repetição</footer>
+
+  <div class="toast" id="toast" role="status" hidden></div>
+
+  <script src="app.js"></script>
+</body>
+</html>
